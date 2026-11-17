@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stellar Drift — Newtonian Space Flight, Trading & Mining</title>
+  <meta name="description" content="Stellar Drift is a free browser space sim: fly real orbits through the Solar System and nearby exoplanet systems, trade, mine, take contracts, run a fleet — and fly the Wraith, a stealth mining carrier." />
+  <meta property="og:title" content="Stellar Drift" />
+  <meta property="og:description" content="Newtonian space flight, trading and mining in your browser." />
+  <meta property="og:image" content="img/wraith-hero.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #03070d; --panel: rgba(8, 16, 28, 0.72); --c: #5fe3ff; --c2: #9fb8d4; --dim: #6f8296; --text: #dce9f5;
+      --line: rgba(95, 227, 255, 0.22); --red: #ff3b1f; --gold: #ffe08a; --good: #6dffa8;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 'Rajdhani', system-ui, 'Segoe UI', sans-serif; }
+    a { color: var(--c); }
+    .mono { font-family: 'Share Tech Mono', ui-monospace, Consolas, monospace; }
+    .wrap { width: min(1120px, 100% - 32px); margin: 0 auto; }
+    .lbl { font-size: 12px; letter-spacing: 0.22em; color: var(--dim); font-weight: 600; text-transform: uppercase; }
+
+    /* top nav */
+    header.nav { position: fixed; inset: 0 0 auto; z-index: 10; background: rgba(3, 7, 13, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(95, 227, 255, 0.1); }
+    section { scroll-margin-top: 60px; }
+    header.nav .wrap { display: flex; align-items: center; gap: 22px; height: 60px; }
+    .brand { font-weight: 700; letter-spacing: 0.32em; color: var(--c); font-size: 15px; text-decoration: none; margin-right: auto; white-space: nowrap; }
+    header.nav a.link { color: var(--c2); text-decoration: none; font-weight: 600; letter-spacing: 0.08em; font-size: 14px; }
+    header.nav a.link:hover { color: #fff; }
+    .btn { display: inline-block; padding: 11px 26px; border-radius: 8px; border: 1px solid var(--c); color: #04121a; background: var(--c);
+      font-weight: 700; letter-spacing: 0.16em; text-decoration: none; font-size: 15px; box-shadow: 0 0 24px rgba(95, 227, 255, 0.35); transition: transform .15s, box-shadow .15s; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 0 34px rgba(95, 227, 255, 0.55); }
+    .btn.ghost { background: transparent; color: var(--c); box-shadow: none; }
+    .btn.small { padding: 7px 16px; font-size: 13px; }
+    @media (max-width: 720px) { header.nav a.link { display: none; } .hero::after { background: linear-gradient(0deg, var(--bg) 8%, rgba(3, 7, 13, 0.55) 60%, rgba(3, 7, 13, 0.3) 100%); } }
+
+    /* hero */
+    .hero { position: relative; min-height: 92vh; display: flex; align-items: flex-end; overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 75% 60%; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(3, 7, 13, 0.85) 0%, rgba(3, 7, 13, 0.45) 38%, rgba(3, 7, 13, 0) 62%), linear-gradient(0deg, var(--bg) 0%, rgba(3, 7, 13, 0) 30%); }
+    .hero .wrap { position: relative; z-index: 1; padding: 0 0 9vh; }
+    .hero .copy { max-width: 560px; }
+    .hero h1 { margin: 0; font-size: clamp(40px, 6.4vw, 84px); letter-spacing: 0.22em; line-height: 1; color: #fff; font-weight: 700; text-shadow: 0 0 40px rgba(95, 227, 255, 0.35); }
+    .hero .sub { margin: 14px 0 26px; font-size: clamp(18px, 2.2vw, 22px); color: var(--c2); }
+    .hero .ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    section { padding: 84px 0; }
+    h2 { font-size: clamp(30px, 4vw, 44px); margin: 6px 0 14px; letter-spacing: 0.06em; color: #fff; line-height: 1.1; }
+    p.lead { font-size: 20px; color: var(--c2); max-width: 760px; margin: 0 0 30px; }
+
+    /* features */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 20px 18px; }
+    .card h3 { margin: 0 0 6px; font-size: 20px; color: #fff; letter-spacing: 0.04em; }
+    .card p { margin: 0; color: var(--c2); font-size: 16px; }
+    .card .ic { font-size: 12px; letter-spacing: 0.2em; color: var(--c); font-family: 'Share Tech Mono', monospace; margin-bottom: 8px; }
+
+    /* wraith */
+    .wraith { background: radial-gradient(ellipse at 70% 0%, rgba(255, 59, 31, 0.10), transparent 60%), linear-gradient(180deg, #05080d, #03070d); border-top: 1px solid rgba(255, 59, 31, 0.25); border-bottom: 1px solid rgba(255, 59, 31, 0.25); }
+    .wraith .lbl { color: #ff8a70; }
+    .wraith h2 span { color: var(--red); text-shadow: 0 0 22px rgba(255, 59, 31, 0.5); }
+    .studio { width: 100%; border-radius: 14px; border: 1px solid rgba(255, 59, 31, 0.25); display: block; margin: 8px 0 26px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 30px; }
+    .stat { background: rgba(255, 59, 31, 0.05); border: 1px solid rgba(255, 59, 31, 0.22); border-radius: 10px; padding: 14px 16px; }
+    .stat b { display: block; font-family: 'Share Tech Mono', monospace; font-size: 24px; color: #fff; font-weight: 400; }
+    .stat span { font-size: 12px; letter-spacing: 0.16em; color: #ff9a84; font-weight: 600; }
+    .stat.price b { color: var(--gold); }
+
+    /* galleries */
+    .shots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .shots figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .shots figure.wide { grid-column: 1 / -1; }
+    .shots img { width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover; cursor: zoom-in; }
+    .shots figcaption { padding: 10px 14px 12px; color: var(--c2); font-size: 15px; }
+    .shots figcaption b { color: #fff; font-weight: 600; }
+    @media (max-width: 720px) { .shots { grid-template-columns: 1fr; } }
+
+    /* lightbox */
+    #lb { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; cursor: zoom-out; }
+    #lb.on { display: flex; }
+    #lb img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+
+    /* controls */
+    .keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 28px; }
+    .keys div { display: flex; gap: 14px; align-items: baseline; border-bottom: 1px solid rgba(95, 227, 255, 0.08); padding: 7px 0; }
+    .keys kbd { font-family: 'Share Tech Mono', monospace; color: #fff; min-width: 120px; font-size: 15px; }
+    .keys span { color: var(--c2); }
+
+    .band { text-align: center; padding: 90px 0; background: linear-gradient(0deg, rgba(95, 227, 255, 0.07), transparent); }
+    .band h2 { margin-bottom: 20px; }
+    footer { padding: 34px 0 44px; color: var(--dim); font-size: 14px; border-top: 1px solid rgba(95, 227, 255, 0.1); }
+    footer p { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="#top">STELLAR DRIFT</a>
+      <a class="link" href="#features">FEATURES</a>
+      <a class="link" href="#wraith">THE WRAITH</a>
+      <a class="link" href="#gallery">GALLERY</a>
+      <a class="link" href="#controls">CONTROLS</a>
+      <a class="btn small" href="../">PLAY</a>
+    </div>
+  </header>
+
+  <div class="hero" id="top">
+    <img src="img/wraith-hero.jpg" alt="The black Wraith stealth carrier burning its six fusion torches above Earth's horizon" />
+    <div class="wrap"><div class="copy">
+      <div class="lbl">A Newtonian space flight simulator</div>
+      <h1>STELLAR<br>DRIFT</h1>
+      <p class="sub">Fly real orbits through the Solar System and the stars next door. Trade, mine, run contracts, build a fleet — right in your browser.</p>
+      <div class="ctas">
+        <a class="btn" href="../">PLAY NOW — FREE</a>
+        <a class="btn ghost" href="#wraith">MEET THE WRAITH</a>
+      </div>
+    </div></div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="lbl">The game</div>
+      <h2>Real physics. A whole neighbourhood of stars.</h2>
+      <p class="lead">Every planet, moon and station follows its real orbit, and your ship obeys Newton. Pick a destination and let the autopilot fly the burn, or take the stick and do it yourself.</p>
+      <div class="grid">
+        <div class="card"><div class="ic">FLY</div><h3>Real orbits & gravity</h3><p>The Sun, planets, moons and asteroids move on their true orbits. Orbit, land on any world with terrain, dock with spinning stations, or fly every burn by hand.</p></div>
+        <div class="card"><div class="ic">EXPLORE</div><h3>30+ star systems</h3><p>The Solar System, ten nearby stars with known exoplanets, and twenty uncharted systems whose untouched asteroid belts hide the rarest finds of all.</p></div>
+        <div class="card"><div class="ic">JUMP</div><h3>Interstellar jump drive</h3><p>Align with the jump vector, burn at full power and the drive spools up — the stars stretch into streaks and you arrive light-years away.</p></div>
+        <div class="card"><div class="ic">TRADE</div><h3>Living markets</h3><p>27 commodities across 25 stations and ground spaceports. Prices drift, react to your trades, and you can compare markets across the stars.</p></div>
+        <div class="card"><div class="ic">MINE</div><h3>Drill for fortune</h3><p>Scan asteroids and moons for deposits, land on the richest site and lower the drills — from water ice to Iridium, Xenocrystals and Exotic Matter.</p></div>
+        <div class="card"><div class="ic">WORK</div><h3>Contracts</h3><p>Courier sealed cargo, carry passengers, source goods to order, or fly to the edge of the map for the Orbital Survey Office.</p></div>
+        <div class="card"><div class="ic">COMMAND</div><h3>Run a fleet</h3><p>Buy extra ships, hire crews and set them on trade loops between stations. They wire you the profit — if they make it.</p></div>
+        <div class="card"><div class="ic">SURVIVE</div><h3>Raiders & running costs</h3><p>Valuable cargo draws pirates: pay, out-run them, or reach a station's patrols. Crews and maintenance cost money every day you fly.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="wraith" class="wraith">
+    <div class="wrap">
+      <div class="lbl">New ship · Stealth mining carrier</div>
+      <h2>The <span>Wraith</span></h2>
+      <p class="lead">A black, radar-absorbing blade the size of a bulk carrier. Four heavy drills in its belly, a six-torch fusion drive and a hull no raider has ever picked up on their scope. The ultimate ship for the uncharted belts — if you can afford it.</p>
+      <img class="studio" src="img/wraith-studio.jpg" alt="Studio render of the Wraith: faceted black hull, swept wings, canards, canted tail fins with red glowing edges and six engines" />
+      <div class="stats">
+        <div class="stat"><b>1,100 t</b><span>CARGO HOLD</span></div>
+        <div class="stat"><b>140 t/h</b><span>MINING RATE</span></div>
+        <div class="stat"><b>6.0 g</b><span>AUTOPILOT ACCEL</span></div>
+        <div class="stat"><b>380 t</b><span>FUEL TANK</span></div>
+        <div class="stat"><b>STEALTH</b><span>RAIDERS NEVER ATTACK</span></div>
+        <div class="stat price"><b>10,000,000</b><span>CREDITS</span></div>
+      </div>
+      <div class="shots">
+        <figure class="wide"><img src="img/wraith-jump.jpg" alt="The Wraith entering an interstellar jump over Saturn's rings, stars streaking past" /><figcaption><b>Jump.</b> Full power along the jump vector over Saturn's rings — the stars stretch into streaks as the drive fires.</figcaption></figure>
+        <figure><img src="img/wraith-mining.jpg" alt="The Wraith landed on the metal asteroid Psyche with its drills running" /><figcaption><b>Mine.</b> Landed on the metal world Psyche, drills bored into the ore.</figcaption></figure>
+        <figure><img src="img/wraith-station-titan.jpg" alt="The Wraith docked at Kraken Station in orbit around hazy orange Titan" /><figcaption><b>Dock.</b> Hanging off Kraken Station above the orange haze of Titan.</figcaption></figure>
+        <figure><img src="img/wraith-saturn.jpg" alt="The Wraith burning past Saturn's rings" /><figcaption><b>Cruise.</b> Six fusion torches lit over Saturn's rings.</figcaption></figure>
+        <figure><img src="img/wraith-earth-orbit.jpg" alt="The Wraith in orbit above Earth with sunlight glinting off the ocean" /><figcaption><b>Orbit.</b> Coasting over Earth, sunlight glinting off the ocean below.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery">
+    <div class="wrap">
+      <div class="lbl">In the cockpit</div>
+      <h2>Everything at your fingertips</h2>
+      <p class="lead">Fly from the chase camera or the cockpit, where the navigation, attitude, ship status, autopilot, target and scope displays are built into the console.</p>
+      <div class="shots">
+        <figure><img src="img/cockpit.jpg" alt="Cockpit view with head-up display, attitude and status screens, autopilot and target screens and the radar scope" /><figcaption><b>Cockpit.</b> HUD, attitude, ship status, autopilot, target and scope on one console.</figcaption></figure>
+        <figure><img src="img/shipyard.jpg" alt="A station shipyard listing the Atlas and the Wraith with their stats and prices" /><figcaption><b>Shipyard.</b> Work your way up from the Kestrel courier to the Atlas — and the Wraith.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="controls">
+    <div class="wrap">
+      <div class="lbl">How to fly</div>
+      <h2>Controls</h2>
+      <p class="lead">You never have to touch the keys: pick a destination and the autopilot will fly you there, orbit, land, dock, undock and line up your jumps. But if you want to fly it yourself, here's how.</p>
+      <div class="keys">
+        <div><kbd>W / S</kbd><span>Thrust forward / back</span></div>
+        <div><kbd>A / D · R / F</kbd><span>Thrust sideways / up & down</span></div>
+        <div><kbd>Arrows, drag</kbd><span>Pitch & yaw</span></div>
+        <div><kbd>Q / E</kbd><span>Roll</span></div>
+        <div><kbd>+ / −</kbd><span>Drive power</span></div>
+        <div><kbd>, . /</kbd><span>Time warp slower / faster / real time</span></div>
+        <div><kbd>G / L / C</kbd><span>Autopilot: orbit / land or dock / circularise</span></div>
+        <div><kbd>J</kbd><span>Jump to the selected star</span></div>
+        <div><kbd>K</kbd><span>Start / stop mining</span></div>
+        <div><kbd>T · I · Z</kbd><span>Station · cargo hold · career log</span></div>
+        <div><kbd>V · M</kbd><span>Cockpit view · system map</span></div>
+        <div><kbd>H</kbd><span>Help — including save export / import</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="band">
+    <div class="wrap">
+      <h2>Your ship is fuelled and waiting.</h2>
+      <a class="btn" href="../">LAUNCH STELLAR DRIFT</a>
+      <p class="lbl" style="margin-top:18px">Free · runs in the browser · no install · saves in your browser</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <p>Stellar Drift — a Newtonian space flight simulator built with Three.js.</p>
+      <p>Your career is saved in your browser. Use EXPORT SAVE in the in-game help (H) to back it up or move it to another device.</p>
+      <p>Planet imagery: NASA-derived maps via Solar System Scope (CC BY 4.0). Exoplanet surfaces are artist's impressions based on measured mass, size and temperature. All screenshots are from the game.</p>
+    </div>
+  </footer>
+
+  <div id="lb" role="dialog" aria-label="Screenshot"><img alt="" /></div>
+  <script>
+    // click a screenshot to see it full size
+    const lb = document.getElementById('lb'), big = lb.querySelector('img');
+    document.querySelectorAll('.shots img, .studio').forEach(img => img.addEventListener('click', () => { big.src = img.src; big.alt = img.alt; lb.classList.add('on'); }));
+    lb.addEventListener('click', () => lb.classList.remove('on'));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('on'); });
+  </script>
+</body>
+</html>

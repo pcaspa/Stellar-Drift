@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stellar Drift — Space Flight Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <canvas id="warpfx"></canvas>
+  <div id="markers"></div>
+  <div id="flash"></div>
+  <div id="crashfx"></div>
+
+  <div id="hud">
+    <div id="topbar" class="panel">
+      <div class="brand">STELLAR DRIFT</div>
+      <div class="sep"></div>
+      <div><span class="lbl">SYSTEM</span> <span id="sysName">Sol</span></div>
+      <div class="sep"></div>
+      <div id="date" class="mono"></div>
+      <div class="sep"></div>
+      <div class="warp">
+        <button id="warpDown" title="Slower ( , )">◀</button>
+        <span id="warp" class="mono">1×</span>
+        <button id="warpUp" title="Faster ( . )">▶</button>
+        <button id="warpReset" title="Real time ( / )">1×</button>
+      </div>
+      <div class="sep"></div>
+      <button id="btnStation" class="hidden" title="Station services (T)">STATION</button>
+      <button id="btnLog" title="Contracts, stats and logbook (Z)">LOG</button>
+      <button id="btnMap" title="System map (M)">MAP</button>
+      <button id="btnView" title="Toggle camera (V)">VIEW</button>
+      <button id="btnOrbits" title="Orbit lines (O)">ORBITS</button>
+      <button id="btnHelp" title="Controls (H)">HELP</button>
+      <button id="btnSound" title="Sound on / off (P)">SOUND</button>
+      <button id="btnExit" class="exitbtn" title="Save and leave for the home page">✕ EXIT</button>
+    </div>
+
+    <div id="nav" class="panel">
+      <div class="phead" id="navHead" title="Collapse / expand (N)">
+        <span class="lbl">NAVIGATION</span>
+        <span id="navMini" class="mini"></span>
+        <i class="chev">▾</i>
+      </div>
+      <div class="navbody">
+        <section id="secAp" class="sec">
+          <div class="sechead"><span class="lbl">AUTOPILOT</span><i class="chev">▾</i></div>
+          <div class="secbody" id="ap">
+      <div id="apStatus" class="apstatus">Manual flight</div>
+      <div class="apbtns">
+        <button id="apUndock" class="primary hidden" title="Back out of the docking port to a safe distance (U)">UNDOCK</button>
+        <button id="apCirc" title="Circularise the current orbit (C)">CIRCULARISE</button>
+        <button id="apOff" class="danger" title="Disengage (X)">DISENGAGE</button>
+      </div>
+      <div id="mineRow" class="hidden">
+        <div id="mineStatus" class="minestatus"></div>
+        <button id="apMine" class="primary" title="Start / stop the drills (K)">START MINING</button>
+      </div>
+      <button id="apTow" class="danger hidden" title="Pay to be towed to the nearest station">REQUEST TOW</button>
+          </div>
+        </section>
+        <section id="secTarget" class="sec">
+          <div class="sechead"><span class="lbl">TARGET</span><i class="chev">▾</i></div>
+          <div class="secbody">
+            <div class="thead">
+              <div>
+                <div id="tName" class="tname">—</div>
+                <div id="tType" class="ttype"></div>
+                <div id="tSite" class="tsite hidden"><span id="tSiteTxt"></span><button id="tSiteClear" title="Clear the landing site">✕</button></div>
+              </div>
+              <div class="tnums mono">
+                <div><span class="lbl">DIST</span> <span id="tDist">—</span></div>
+                <div><span class="lbl">REL V</span> <span id="tVel">—</span></div>
+                <div><span class="lbl">TRIP</span> <span id="tTrip">—</span></div>
+              </div>
+            </div>
+            <div id="travelMode" class="travelmode" title="FAST: accelerate to the halfway point and brake. ECONOMY: cruise at a tenth of the speed for about a tenth of the fuel (takes ~5x longer).">
+              <span class="lbl">TRAVEL</span><button id="trFast">FAST</button><button id="trEco">ECONOMY</button>
+            </div>
+            <div class="tbtns">
+              <button id="apOrbit" class="primary" title="Fly there and enter a stable orbit (G)">FLY TO &amp; ORBIT</button>
+              <button id="apLand" class="primary" title="Fly there and land or dock (L)">LAND</button>
+              <button id="apJump" class="primary jump" title="Jump to this star system (J)">ENGAGE JUMP DRIVE</button>
+            </div>
+            <section id="secInfo" class="sec sub collapsed">
+              <div class="sechead"><span class="lbl">DETAILS</span><i class="chev">▾</i></div>
+              <div class="secbody"><div id="tInfo"></div></div>
+            </section>
+          </div>
+        </section>
+        <section id="secDest" class="sec grow">
+          <div class="sechead"><span class="lbl">DESTINATIONS</span><i class="chev">▾</i></div>
+          <div class="secbody">
+            <div class="tabs">
+              <button id="tabSystem" class="active">THIS SYSTEM</button>
+              <button id="tabStars">STAR SYSTEMS</button>
+            </div>
+            <div id="navList"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="scope" class="panel">
+      <div class="phead" id="scopeHead" title="Collapse / expand">
+        <span class="lbl">SCOPE</span>
+        <span id="scopeMini" class="mini"></span>
+        <i class="chev">▾</i>
+      </div>
+      <div class="scopebody">
+      <div class="scope-head">
+        <button id="scRadar" class="active" title="Radar: objects around you, stalks show height above/below">RADAR</button>
+        <button id="scFrom" title="Your orbit around the body you are near or leaving">FROM</button>
+        <button id="scTo" title="Your position relative to the target's orbit">TO</button>
+        <button id="scScan" title="Scan the target for mineable resources">SCAN</button>
+        <span class="scope-range"><button id="scZoomOut" title="Zoom out">−</button><span id="scRange" class="mono">AUTO</span><button id="scZoomIn" title="Zoom in">+</button></span>
+      </div>
+      <div class="scope-screen">
+        <canvas id="scopeCanvas"></canvas>
+        <div id="scopeLabel" class="scope-label mono"></div>
+      </div>
+      </div>
+    </div>
+
+
+
+    <div id="flight" class="panel">
+      <div class="inst keep"><div class="lbl">CREDITS</div><div id="credits" class="mid mono gold">0</div></div>
+      <div class="inst keep"><div class="lbl">CARGO</div><button id="cargoBtn" class="cargobtn mono" title="Cargo hold manifest (I)"><span id="cargo">0/0 t</span></button></div>
+      <div class="fsep keep"></div>
+      <div class="inst"><div class="lbl" id="vLbl">VELOCITY</div><div id="vVal" class="big mono">0</div><div class="unit" id="vRef"></div></div>
+      <div class="inst"><div class="lbl" id="altLbl">ALTITUDE</div><div id="altVal" class="big mono">0</div><div class="unit" id="altRef"></div></div>
+      <div class="inst"><div class="lbl">VERT SPEED</div><div id="vsVal" class="mid mono">0</div></div>
+      <div class="inst"><div class="lbl">APOAPSIS</div><div id="apVal" class="mid mono">—</div></div>
+      <div class="inst"><div class="lbl">PERIAPSIS</div><div id="peVal" class="mid mono">—</div></div>
+      <div class="inst"><div class="lbl">PERIOD</div><div id="perVal" class="mid mono">—</div></div>
+      <div class="inst"><div class="lbl">DRIVE POWER</div><div id="thrVal" class="mid mono">—</div><div class="bar"><div id="thrBar"></div></div></div>
+      <div class="inst"><div class="lbl">ACCEL</div><div id="gVal" class="mid mono">0 g</div></div>
+      <div class="inst" title="Helionite fusion fuel in the tank"><div class="lbl">HELIONITE</div><div id="fuelVal" class="mid mono">—</div><div class="bar fuel"><div id="fuelBar"></div></div></div>
+      <div class="inst"><div class="lbl">LANDING GEAR</div><button id="gearBtn" class="gearbtn mono" title="Landing gear: AUTO / DOWN / UP (Y)">AUTO · UP</button></div>
+      <div class="inst"><div class="lbl">ENVIRONMENT</div><div id="envVal" class="small mono">Vacuum</div></div>
+    </div>
+
+    <div id="help" class="panel hidden">
+      <div class="lbl">FLIGHT CONTROLS</div>
+      <table>
+        <tr><td>W / S</td><td>Thrust forward / back</td></tr>
+        <tr><td>A / D</td><td>Thrust left / right</td></tr>
+        <tr><td>R / F</td><td>Thrust up / down</td></tr>
+        <tr><td>Arrows or left-drag</td><td>Pitch &amp; yaw</td></tr>
+        <tr><td>Q / E</td><td>Roll</td></tr>
+        <tr><td>+ / −</td><td>Drive power</td></tr>
+        <tr><td>, / . / /</td><td>Time warp slower / faster / real time</td></tr>
+        <tr><td>Right-drag, wheel</td><td>Orbit camera, zoom</td></tr>
+        <tr><td>V</td><td>Chase / cockpit view</td></tr>
+        <tr><td>M</td><td>System map</td></tr>
+        <tr><td>G / L / C</td><td>Autopilot: fly to &amp; orbit / land or dock / circularise</td></tr>
+        <tr><td>T / U</td><td>Station services / autopilot undock</td></tr>
+        <tr><td>J</td><td>Jump to selected star system</td></tr>
+        <tr><td>X</td><td>Disengage autopilot</td></tr>
+        <tr><td>K</td><td>Start / stop mining</td></tr>
+        <tr><td>Y</td><td>Landing gear: auto / down / up</td></tr>
+        <tr><td>I / Z</td><td>Cargo hold / career log</td></tr>
+        <tr><td>O / H / P</td><td>Orbit lines / this help / sound on-off</td></tr>
+      </table>
+      <div class="hint">Click any label in space, or pick from Destinations, to set a target.</div>
+      <div class="lbl" style="margin-top:10px">CAREER SAVE</div>
+      <div class="save-row">
+        <button id="saveExport" title="Download your career as a file">EXPORT SAVE</button>
+        <button id="saveImport" title="Replace this career with one from a saved file">IMPORT SAVE</button>
+        <input id="saveFile" type="file" accept=".json,application/json" hidden />
+      </div>
+      <div class="hint">Your career lives in this browser only. Export it to keep a backup or move it to another device or site.</div>
+    </div>
+    <div id="hold" class="panel hidden">
+      <div class="hold-head">
+        <div><div class="lbl">CARGO HOLD</div><div id="holdSub" class="hold-sub"></div></div>
+        <button id="holdClose" title="Close (I)">✕</button>
+      </div>
+      <div class="bar"><div id="holdBar"></div></div>
+      <div id="holdBody"></div>
+    </div>
+    <div id="career" class="panel hidden">
+      <div class="hold-head">
+        <div><div class="lbl">CAREER</div><div id="logSub" class="hold-sub"></div></div>
+        <button id="logClose" title="Close (Z)">✕</button>
+      </div>
+      <div class="tabs log-tabs">
+        <button id="logTab_contracts" class="active">CONTRACTS</button>
+        <button id="logTab_stats">STATS</button>
+        <button id="logTab_log">LOGBOOK</button>
+      </div>
+      <div id="logBody"></div>
+    </div>
+    <div id="pirate" class="panel hidden">
+      <div class="lbl bad">⚠ RAIDER ALONGSIDE · <span id="pirName"></span></div>
+      <div id="pirInfo"></div>
+      <div id="pirMsg"></div>
+      <div class="pir-row"><button id="pirPay" class="danger">PAY</button><span id="pirHint"></span></div>
+    </div>
+    <div id="toasts"></div>
+    <div id="jumpStatus" class="hidden"></div>
+
+  <!-- inside #hud so the log, cargo and help panels can stack above it -->
+  <div id="station" class="hidden">
+    <div class="st-card">
+      <div class="st-head">
+        <div>
+          <div class="lbl">DOCKED AT</div>
+          <div id="stName" class="tname"></div>
+          <div id="stSub" class="ttype"></div>
+        </div>
+        <div class="st-money">
+          <div><span class="lbl">CREDITS</span><b id="stCredits" class="mono"></b></div>
+          <div><span class="lbl">CARGO</span><b id="stCargo" class="mono"></b><div class="bar"><div id="stCargoBar"></div></div></div>
+          <div><span class="lbl">FUEL</span><b id="stFuel" class="mono"></b><div class="bar fuel"><div id="stFuelBar"></div></div></div>
+          <div><span class="lbl">SHIP</span><b id="stShip"></b><div id="stUpkeep" class="st-upkeep"></div></div>
+        </div>
+        <div class="st-btns">
+          <button id="stRefuel" class="primary" title="Fill the fuel tank">REFUEL</button>
+          <button id="stClose" title="Close (T / Esc)">✕</button>
+        </div>
+      </div>
+      <div class="tabs st-tabs">
+        <button id="stTabMarket" class="active">MARKET</button>
+        <button id="stTabContracts">CONTRACTS</button>
+        <button id="stTabShipyard">SHIPYARD</button>
+        <button id="stTabFleet">FLEET</button>
+        <button id="stTabInfo">STATION INFO</button>
+      </div>
+      <div class="st-body">
+        <div id="stMarket"></div>
+        <div id="stContracts" class="hidden"></div>
+        <div id="stShipyard" class="hidden"></div>
+        <div id="stFleet" class="hidden"></div>
+        <div id="stInfo" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <div id="map" class="hidden">
+    <canvas id="mapCanvas"></canvas>
+    <div class="maphdr panel">
+      <span class="brand" id="mapTitle">MAP</span>
+      <button id="mapSys" title="This star system">SYSTEM</button>
+      <button id="mapGal" title="Local galactic neighbourhood">GALAXY</button>
+      <span class="sep"></span>
+      <button id="mapStar">CENTRE STAR</button>
+      <button id="mapShip">CENTRE SHIP</button>
+      <button id="mapTarget">CENTRE TARGET</button>
+      <span class="hint" id="mapHint">Scroll to zoom · drag to pan · click a body to target it</span>
+      <button id="mapClose">CLOSE (M)</button>
+    </div>
+  </div>
+
+  <div id="intro">
+    <div class="intro-card">
+      <button id="introClose" class="intro-close" title="Close (Esc)" aria-label="Close">✕</button>
+      <h1>STELLAR DRIFT</h1>
+      <p class="sub">A Newtonian space flight simulator</p>
+      <p>Fly a fusion-drive ship through the real Solar System and numerous nearby star systems, including their exoplanets, based on real discoveries.
+        Real orbits, real gravity, real distances.</p>
+      <ul>
+        <li>You start docked at <b>Gateway Station</b> above Earth with a small courier and 3,000 credits</li>
+        <li>Trade real and exotic commodities between 15 stations to earn credits, then buy bigger ships</li>
+        <li>Pick a destination and let the autopilot fly you there, orbit, land, or <b>dock</b></li>
+        <li>Or fly by hand: <b>W A S D R F</b> to thrust, <b>arrows</b> or drag to steer</li>
+        <li>Use the jump drive to cross interstellar space</li>
+      </ul>
+      <button id="start" class="primary">BEGIN FLIGHT</button>
+      <button id="newGame" class="hidden">NEW CAREER</button>
+      <div id="newChoice" class="hidden">
+        <p>Starting a new career erases this one. Save it to a file first? You can load it again later with <b>IMPORT SAVE</b> in the help panel.</p>
+        <div class="nc-row">
+          <button id="ncSave" class="primary">SAVE CAREER TO FILE</button>
+          <button id="ncErase" class="danger">ERASE AND START NEW</button>
+          <button id="ncCancel">CANCEL</button>
+        </div>
+        <div id="ncMsg" class="fine"></div>
+      </div>
+      <p class="fine" id="loading">Planet imagery: NASA-derived maps via Solar System Scope (CC BY 4.0). Exoplanet surfaces are artist's impressions based on measured mass, size and temperature.</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
