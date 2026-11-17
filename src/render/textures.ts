@@ -3,6 +3,8 @@ import { LandMask, Surface } from '../sim/surface';
 import { bakeArrays, type BakedArrays } from './bake';
 
 const loader = new TextureLoader();
+/** planet maps live in /textures at the site root; the game page itself is in /play/ */
+const TEX_ROOT = import.meta.env.DEV ? '/textures/' : new URL('../textures/', import.meta.url).href;
 const cache = new Map<string, Promise<Texture | null>>();
 
 /** load from /textures; resolves null if the file is missing so callers can fall back to procedural */
@@ -10,7 +12,7 @@ export function loadTexture(name: string, srgb = true): Promise<Texture | null> 
   let p = cache.get(name);
   if (!p) {
     p = new Promise(resolve => {
-      loader.load(`textures/${name}`, tex => {
+      loader.load(TEX_ROOT + name, tex => {
         if (srgb) tex.colorSpace = SRGBColorSpace;
         tex.wrapS = RepeatWrapping;
         tex.anisotropy = 8;

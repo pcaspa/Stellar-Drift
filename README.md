@@ -11,7 +11,13 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173.
+Open http://localhost:5173 for the home page, or http://localhost:5173/play/ to go straight to the game.
+
+## Site layout
+
+- `/`: the home page (`index.html`): what the game is, screenshots, controls and PLAY buttons. Its images are in `public/img/`.
+- `/play/`: the game itself (`play/index.html`, code in `src/`). Planet maps load from `/textures/`.
+- `/home/`: redirects to `/` (kept so older links still work).
 
 ## Publish on Replit
 

@@ -209,7 +209,7 @@ function readInput() {
   btn.addEventListener('click', () => {
     if (!confirmClick(btn, 'CONFIRM EXIT', 4000)) return;
     if (!resetting) sim.saveGame();
-    location.href = 'home/index.html';
+    location.href = '../';
   });
 }
 // closing the intro dialog (✕ or Esc) is the same as continuing
